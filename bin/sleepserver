@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2006 Eric L. Wilhelm
+
+use warnings;
+use strict;
+
+=head1 NAME
+
+sleepserver - an http server that sleeps on the job
+
+=cut
+
+package bin::sleepserver;
+our $VERSION = v0.0.1;
+
+sub main {
+  my (@args) = @_;
+
+  my $server = HTTP::Sleeper->new();
+  $server->port(8088);
+  warn "server: $server", $server->port;
+  local $SIG{HUP};
+  $server->run;
+}
+
+package main;
+
+if($0 eq __FILE__) {
+  bin::sleepserver::main(@ARGV);
+}
+
+=begin module
+
+=cut
+
+BEGIN {
+package HTTP::Sleeper;
+use HTTP::Server::Simple::CGI;
+use base qw(HTTP::Server::Simple::CGI);
+use Time::HiRes qw(usleep);
+
+=head2 new
+
+  my $server = HTTP::Sleeper->new();
+
+=cut
+
+sub new {
+  my $package = shift;
+  my $class = ref($package) || $package;
+  my $self = {@_};
+  bless($self, $class);
+  return($self);
+} # end subroutine new definition
+########################################################################
+
+=head2 handle_request
+
+  $server->handle_request($cgi);
+
+=cut
+
+sub handle_request {
+  my $self = shift;
+  my ($cgi) = @_;
+  my $path = $cgi->path_info;
+  #warn "cgi object $cgi -- $path";
+  warn "request $path\n";
+  use CGI qw/:standard/;
+  $self->dispatch($path);
+} # end subroutine handle_request definition
+########################################################################
+
+=head2 dispatch
+
+  $self->dispatch($path);
+
+=cut
+
+sub dispatch {
+  my $self = shift;
+  my ($path) = @_;
+  my $headers = sub { # currying
+    my ($title) = @_;
+    return(start_html(-title => $title));
+  };
+  if($path eq '/') {
+    print $headers->('SleepServer');
+    print "<p>I'm awake.</p>\n";
+    print end_html;
+  }
+  elsif($path =~ m#/(\d*(?:\.\d*)?)#) {
+    my $sec = $1;
+    my $time = int($sec * 1_000_000);
+    Time::HiRes::usleep($time);
+    print $headers->('SleepServer ' . $sec);
+    print "<p>I slept for $sec seconds.</p>\n";
+    print end_html;
+  }
+  else {
+    warn "'$path' not a valid path";
+  }
+} # end subroutine dispatch definition
+########################################################################
+
+} # end package
+# vi:ts=2:sw=2:et:sta
+my $package = 'bin::sleepserver';

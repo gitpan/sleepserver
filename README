@@ -1,0 +1,19 @@
+sleepserver
+
+INSTALLATION
+
+To install this program, run the following commands:
+
+    perl Build.PL
+    ./Build
+    ./Build test
+    ./Build install
+
+
+DOCUMENTATION
+
+After installing, you can find documentation for this program with the perldoc command.
+
+    perldoc sleepserver
+
+

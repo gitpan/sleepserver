@@ -1,0 +1,5 @@
+not_kwalitee:
+  - has_test_pod
+  - has_test_pod_coverage
+  - proper_libs
+  - use_strict # huh?
